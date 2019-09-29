@@ -1,0 +1,156 @@
+               LESSON 1 : CREATING A TEST ROOM.
+
+
+PART1 Intro
+
+Befor you get started you should have the Vera Refference Guide handy for referencing. You should be using emulator v31. As versions change I will go over what code needs to change with it. If you do not know what hexidecimal or binary are. I will go over a little on how to use them but i will not be explaining them in depth. My focus will be on creating a simple game with basic, understanding the Vera. Also it will help if you have a calculator that can handle hex(hexidecimal) and (bin). I use SixTeen Free which you can find on google play. Get familiar also with basic v2.0 keywords and their functions.
+
+DO NOT BE AFRAID TO ASK QUSTIONS!!! There are no stupid questions, only stupid people because they don't ask questions.
+Know also that I will not always just give you the answer. I may give you clues or point you in the right direction. The greatest thing you can ever learn is how to find anwers yourself. 
+
+The game I will be creating will be a top view action adventure game. It will build off of the idea of Adventure for the Atari 2600. The CX16 can do a lot more than a 2600 can so of course we're going to do a bit more as well. This will not be a copy of or port of Adventure. We will be creating our own game from the ground up. I like to use the style of Adventure as inspiration because it is such a stripped down and simple game that is easy to build upon and you can take it in almost any direction. Most of the games I've written for the Vic 20 have a touch of Adventure in them somewhere. 
+
+Game elements I plan on including...
+-background graphics using 16 color text mode. It is easy to use 
+ and requires the least amount of memory.
+-animated sprite controlled character, enemies, weapons etc.
+-health bar and inventory displaye using sprites.
+-a 25 room dungeon.
+-a Zelda like screen transition.
+-possible shot cinematics.
+-possible save game feature.
+-hopefully music and sfx. 
+
+
+
+
+Part 2 Test room creation.
+
+The following type-in will generate a simple room where we will be able to test our sprites out in once we creat them.
+
+10 FG=127 : FC=$C1 : WG=102 : WC=$20 
+
+This sets variable for our wall and floor graphics and color.
+Any value that splits a byte in into 2 4 bit values it is easier to express with hexidecimal. Each didgit of hex controls its coresponding 4 bits. No complex math is needed to figure out the poke value. The character color in 16 color text mode is controlled with one byte split into bg and fg color. One didgit of hex controls fg color and the other controls bg color ($ bg fg). The equation needed to figure out the value in decimal is fg+bg*16. You can change the values here to test out how different character graphics and color will look. 
+
+20 PRINT CHR$(147)
+
+Clears the screen.
+
+1000 FOR Y= 0 TO 29
+1100 FOR  X= 0 TO 31
+
+Generates a loop for generating our room along an x,y axis.
+
+1200 IF X*Y= 0 THEN  1600
+1300 IF X= 31 OR Y= 29 THEN 1600
+1400 IF X > 10 AND X < 20 THEN IF Y > 10 AND Y < 20 THEN 1600
+
+Decides if a tile will be a wall. If it is not a wall it will defalult to floor.
+
+1500 CH= FG: CL= FC:GOTO 1700
+
+Assigns floor tile values to charater variable
+
+1600 CH= WG: CL= WC
+
+Assigns wall tile values to charater variable
+
+
+1700 VPOKE 0, (X+Y*128)*2, CH
+1800 VPOKE 0, (X+Y*128)*2+1, CL
+
+This pokes our walls and floors in to screen positions in the Vera under bank 0 of video ram. Even bytes are character position and odd are color. 
+
+1900 NEXT X: NEXT Y
+
+End of loop.
+
+2000 GOTO 2000
+
+A loop to keep our program running so we can see our room.
+
+Save your program and run it. Make sure you save often. You should have a small room drawn in the top left portion of the screen with brick walls and a tile floor.
+
+
+
+
+PART 3 Resizing the screen.
+
+Make sure your previous code is saved and start a new program.
+
+I will be using 8*8 pixel sprites which appear very small in 80 column mode so we will be setting the screen display to something closer to the 40 column mode. I will also be altering then screen size to 32*30 tiles. This is mainly for the point of keeping things simple. I will most likely be making the screen a little smaller. I dont need each room to be that big and the smaller each room is the more rooms I will be able to fit into memory. 
+
+10 BG= $30
+
+Sets a variable for border color (the border is the unsused portion of the screen left over after you shrink the screen area down. I will probably set it to black and flash it different colors for ingame visual effects.
+
+100 POKE 646, $20: PRINT CHR$ (147)
+
+Poke 636 sets the fg/bg color for the print command. When you clear the screen (PRINT CHR$(147)) the screen color defaults to the bg color set at 646. Line 100 changes the sreen color to red.
+
+200 VPOKE $F, 1, 64
+
+Vera bank $F, 0 to 31 contain Veras screen display control registors. This sets the horizontal scale to display each pixel at double width.
+
+300 VPOKE $F, 2, 64
+
+This sets the vertical scale to diplay each pixel at double hight.
+
+400 VPOKE $F, 3, BC
+
+Sets the border color.
+
+500 VPOKE $F, 4, 62
+600 VPOKE $F, 5, 61
+700 VPOKE $F, 7, 223
+800 VPOKE $F, 8, %00101000
+
+Registors 4 to 7 set the low bytes for the horizontal/vertical dimensions of the screen display. 8 Contains the high bits(consult the Vera referance manual for more detail). Registor 8 is slpit up into the high bytes. Each is 1 to 2 bit valuss. I use bin here because when working with bits and nibles it is easier for me to turn bits on or off using a bin value than it is to do the math put all the high byte values togather. 
+
+And run the code now. You should see a smaller red screen with a red border.
+
+Now restart your computer. Load the code we wrote in parrt 2. Type list. Now load the code we just wrote. Type list. Go to line 10 in the first program. Add BC=$30 to the line of code. Starting ant line 10 press enter until you have entered each line of the first code.  Type list and you should see both of your codes merged togather. Save your newly merged code and run it. You should now have your test room displayed on our resized screen. The charavter tiles should appear larger and easier to see.
+
+
+
+
+Part 3 Custom characters.
+ 
+As for right now the carachter set is stored in ram in the vera. This makes it extremely simple to redifine a new charachter set. All we have to do is right our new charachters over the old. In the following we are going to create our own wall and tile graphics. The wall we be at character 64(spade) and charachter 65 (horizontal line). 
+
+First load your previously merged code.
+In line 10 change FG to 65, WG to 64, WC to $02 and BC to 0. Make sure you press enter on a line of code after you have edited it. 
+
+Type in the following at the end of your current program. The basic editor will automatically reorder the lines of code after the are entered.
+
+900 X=$F000
+
+Sets $F000 (The start of character ram) to the variable X).
+
+910 FOR T=0 TO 15
+
+Sets up a loop from 0 to 15 to count and address the 16 bytes needed for our 2 characters. 
+
+920 READ A
+
+Reads a byte from the data table and assigns it to the variable A.
+
+930 VPOKE 1,X+(64*8)+T,A
+
+Vpokes A to vera bank 1 at X+(64*8)+t. X= start of charachter rom, 64*8= start of 1st charachted addressed by its character position * 8 bits per charachter. T indexes the charachters bytes.
+
+940 NEXT T
+
+Ends loop.
+
+950 DATA %00000000,%11101110,%00000000,%10111011
+960 DATA %00000000,%11101110,%00000000,%10111011
+970 DATA %11001100,%11001100,%00110011,%00110011
+980 DATA %11001100,%11001100,%00110011,%00110011
+
+This is the data table for our graphics. 950 and 960 are the 8 bytes of brick pattern. 970 and 980 are the floor pattern.
+
+Save and run. You should now see our room in our resized screen and our new charachters as our walls and floor. The border should also now be black to mask it for the time being.
+
+In the next lesson I will be creating a character sprite, animate it, move it around using commands for the nes controller and setting up collisions with our walls.
